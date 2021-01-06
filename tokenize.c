@@ -1,8 +1,5 @@
 #include "9cc.h"
 
-char *user_input;
-Token *token;
-
 void error(char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
@@ -28,6 +25,13 @@ bool consume(char *op) {
     if (token->kind != TK_RESERVED || 
         strlen(op) != token->len || 
         memcmp(token->str, op, token->len))
+        return false;
+    token = token->next;
+    return true;
+}
+
+bool consume_return(char *op) {
+    if (token->kind != TK_RETURN)
         return false;
     token = token->next;
     return true;
@@ -74,6 +78,13 @@ bool startswith(char *p, char *q) {
     return memcmp(p, q, strlen(q)) == 0;
 }
 
+bool is_alnum(char c) {
+  return ('a' <= c && c <= 'z') ||
+         ('A' <= c && c <= 'Z') ||
+         ('0' <= c && c <= '9') ||
+         (c == '_');
+}
+
 Token *tokenize() {
     char *p = user_input;
     Token head;
@@ -97,6 +108,12 @@ Token *tokenize() {
 
         if (strchr("+-*/()<>;=", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
+            continue;
+        }
+
+        if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
+            cur = new_token(TK_RETURN, cur, p, 6);
+            p+=6;
             continue;
         }
 

@@ -15,22 +15,38 @@ Node *new_node_num(int val) {
     return node;
 }
 
-Node *new_lvar(char name) {
+Node *new_node_return() {
     Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_LVAR;
-    node->offset = (name - 'a' + 1) * 8;
+    node->kind = ND_RETURN;
+    node->lhs = expr();
     return node;
 }
 
-Node *stmt();
-Node *expr();
-Node *assign();
-Node *equality();
-Node *relational();
-Node *add();
-Node *mul();
-Node *unary();
-Node *primary();
+LVar *find_lvar(Token *tok) {
+    for (LVar *var = locals; var; var = var->next)
+        if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
+            return var;
+    return NULL;
+}
+
+Node *new_node_lvar(Token *tok) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_LVAR;
+
+    LVar *lvar = find_lvar(tok);
+    if (lvar) {
+        node->offset = lvar->offset;    
+    } else {
+        lvar = calloc(1, sizeof(Node));
+        lvar->next = locals;
+        lvar->name = tok->str;
+        lvar->len = tok->len;
+        lvar->offset = locals->offset + 8;
+        node->offset = lvar->offset;
+        locals = lvar;
+    }
+    return node;
+}
 
 void *program() {
     int i = 0;
@@ -40,7 +56,12 @@ void *program() {
 }
 
 Node *stmt() {
-    Node *node = expr();
+    Node *node;
+    if (consume_return()) {
+        node = new_node_return();
+    } else {
+        node = expr();
+    }
     expect(";");
     return node;
 }
@@ -130,7 +151,7 @@ Node *primary() {
 
     Token *tok = consume_ident();
     if (tok) {
-        new_lvar(*tok->str);
+        new_node_lvar(tok);
     }
 
     return new_node_num(expect_number());
