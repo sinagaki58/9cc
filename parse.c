@@ -41,7 +41,8 @@ Node *new_node_lvar(Token *tok) {
         lvar->next = locals;
         lvar->name = tok->str;
         lvar->len = tok->len;
-        lvar->offset = locals->offset + 8;
+        lvar->offset = 8;
+        // lvar->offset = locals->offset + 8;
         node->offset = lvar->offset;
         locals = lvar;
     }
@@ -151,7 +152,7 @@ Node *primary() {
 
     Token *tok = consume_ident();
     if (tok) {
-        new_node_lvar(tok);
+        return new_node_lvar(tok);
     }
 
     return new_node_num(expect_number());
