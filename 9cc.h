@@ -47,7 +47,6 @@ Token *tokenize();
 
 char *user_input;
 Token *token;
-LVar *locals;
 
 // 
 // Parser

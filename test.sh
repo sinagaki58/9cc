@@ -55,4 +55,5 @@ assert 1 'return 1;'
 assert 3 'a=3;'
 assert 3 'a=3; return a;'
 # assert 3 'a=1; z=3; return a+z;'
+assert 3 'foo=3; return foo;'
 echo OK

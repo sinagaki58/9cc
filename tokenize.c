@@ -49,7 +49,7 @@ void expect(char *op) {
     if (token->kind != TK_RESERVED || 
         strlen(op) != token->len || 
         memcmp(token->str, op, token->len))
-        error_at(token->str, "'%c'ではりません", op);
+        error_at(token->str, "'%s'ではりません", op);
     token= token->next;
 }
 
@@ -76,6 +76,10 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
 
 bool startswith(char *p, char *q) {
     return memcmp(p, q, strlen(q)) == 0;
+}
+
+bool is_alpha(char c) {
+  return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_';
 }
 
 bool is_alnum(char c) {
@@ -125,8 +129,11 @@ Token *tokenize() {
             continue;
         }
 
-        if ('a' <= *p && *p <= 'z') {
-            cur = new_token(TK_IDENT, cur, p++, 1);
+        if (is_alpha(*p)) {
+            char *q = p++;
+            while (is_alnum(*p))
+                p++;
+            cur = new_token(TK_IDENT, cur, q, p - q);
             continue;
         }
 
